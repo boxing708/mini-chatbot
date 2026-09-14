@@ -26,11 +26,30 @@ type ChatbotContextValue = {
 
 const ChatbotContext = createContext<ChatbotContextValue | null>(null);
 
-export function ChatbotProvider({ children }: { children: ReactNode }) {
+type ChatbotProviderProps = {
+  children: ReactNode;
+  chatId: string;
+  initialMessages: UIMessage[];
+};
+
+export function ChatbotProvider({
+  children,
+  chatId,
+  initialMessages,
+}: ChatbotProviderProps) {
   const [input, setInput] = useState("");
 
   const transport = useMemo(
-    () => new DefaultChatTransport({ api: "/api/chat" }),
+    () =>
+      new DefaultChatTransport({
+        api: "/api/chat",
+        prepareSendMessagesRequest: ({ id, messages }) => ({
+          body: {
+            chatId: id,
+            message: messages.at(-1),
+          },
+        }),
+      }),
     [],
   );
 
@@ -42,7 +61,8 @@ export function ChatbotProvider({ children }: { children: ReactNode }) {
     sendMessage: sendChatMessage,
     stop,
   } = useChat({
-    id: "learning-chat",
+    id: chatId,
+    messages: initialMessages,
     transport,
   });
 

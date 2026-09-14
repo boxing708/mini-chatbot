@@ -5,16 +5,26 @@ import {
   generateId,
   streamText,
   type UIMessage,
+  validateUIMessages,
 } from "ai";
+import { loadMessages, saveMessages } from "@/db/chat-store";
 
 export const maxDuration = 30;
+
+type ChatRequest = {
+  chatId: string;
+  message: UIMessage;
+};
 
 const sleep = (ms: number) =>
   new Promise<void>(resolve => setTimeout(resolve, ms));
 
-function createMockResponse(messages: UIMessage[], signal: AbortSignal) {
-  const answer =
-    "モックモードです。USE_MOCK_AI=false にすると実際のモデルへ接続します。";
+function createMockResponse(
+  chatId: string,
+  messages: UIMessage[],
+  signal: AbortSignal,
+) {
+  const answer = "DB対応モックです。この応答が完了するとSQLiteへ保存されます。";
 
   const stream = createUIMessageStream({
     originalMessages: messages,
@@ -39,16 +49,32 @@ function createMockResponse(messages: UIMessage[], signal: AbortSignal) {
 
       writer.write({ type: "text-end", id: textPartId });
     },
+    onFinish: ({ messages: completedMessages, isAborted }) => {
+      if (!isAborted) saveMessages(chatId, completedMessages);
+    },
   });
 
   return createUIMessageStreamResponse({ stream });
 }
 
 export async function POST(request: Request) {
-  const { messages }: { messages: UIMessage[] } = await request.json();
+  const body = (await request.json()) as Partial<ChatRequest>;
+  const { chatId, message } = body;
+
+  if (!chatId || !message) {
+    return new Response("chatId and message are required", { status: 400 });
+  }
+
+  const previousMessages = loadMessages(chatId);
+  const messages = await validateUIMessages({
+    messages: [...previousMessages, message],
+  });
+
+  // AIが失敗・中断してもユーザー発言は残す。
+  saveMessages(chatId, messages);
 
   if (process.env.USE_MOCK_AI === "true") {
-    return createMockResponse(messages, request.signal);
+    return createMockResponse(chatId, messages, request.signal);
   }
 
   const model = process.env.AI_MODEL;
@@ -67,5 +93,8 @@ export async function POST(request: Request) {
   return result.toUIMessageStreamResponse({
     originalMessages: messages,
     generateMessageId: generateId,
+    onFinish: ({ messages: completedMessages, isAborted }) => {
+      if (!isAborted) saveMessages(chatId, completedMessages);
+    },
   });
 }
