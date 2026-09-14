@@ -1,0 +1,2353 @@
+<!doctype html>
+<html lang="ja">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta
+      name="description"
+      content="ChatbotProviderを理解するためのNext.js・React・AI SDK v6ハンズオン"
+    />
+    <title>Build to Understand — ChatbotProvider Hands-on</title>
+    <style>
+      :root {
+        color-scheme: dark;
+        --bg: #090b10;
+        --surface: #11151d;
+        --surface-2: #171c26;
+        --surface-3: #202735;
+        --text: #f3f5f7;
+        --muted: #9aa5b4;
+        --line: #2a3342;
+        --accent: #6ee7c7;
+        --accent-2: #79a7ff;
+        --warning: #f3c969;
+        --danger: #ff8c8c;
+        --code: #080a0e;
+        --sidebar: 286px;
+        --radius: 16px;
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      html {
+        scroll-behavior: smooth;
+      }
+
+      body {
+        margin: 0;
+        background:
+          radial-gradient(circle at 86% 4%, rgba(121, 167, 255, 0.12), transparent 26rem),
+          radial-gradient(circle at 8% 20%, rgba(110, 231, 199, 0.08), transparent 22rem),
+          var(--bg);
+        color: var(--text);
+        font-family:
+          Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont,
+          "Segoe UI", sans-serif;
+        line-height: 1.75;
+      }
+
+      a {
+        color: inherit;
+      }
+
+      code,
+      pre {
+        font-family:
+          "SFMono-Regular", Consolas, "Liberation Mono", Menlo, monospace;
+      }
+
+      .layout {
+        min-height: 100vh;
+      }
+
+      .sidebar {
+        position: fixed;
+        inset: 0 auto 0 0;
+        z-index: 20;
+        width: var(--sidebar);
+        overflow-y: auto;
+        border-right: 1px solid var(--line);
+        background: rgba(9, 11, 16, 0.92);
+        backdrop-filter: blur(18px);
+        padding: 28px 20px;
+      }
+
+      .brand {
+        display: flex;
+        gap: 12px;
+        align-items: center;
+        margin-bottom: 28px;
+      }
+
+      .brand-mark {
+        display: grid;
+        width: 38px;
+        height: 38px;
+        place-items: center;
+        border: 1px solid rgba(110, 231, 199, 0.45);
+        border-radius: 11px;
+        background: rgba(110, 231, 199, 0.08);
+        color: var(--accent);
+        font-weight: 800;
+      }
+
+      .brand-copy {
+        line-height: 1.25;
+      }
+
+      .brand-copy strong {
+        display: block;
+        font-size: 14px;
+      }
+
+      .brand-copy span {
+        color: var(--muted);
+        font-size: 11px;
+      }
+
+      .progress-card {
+        margin-bottom: 24px;
+        padding: 14px;
+        border: 1px solid var(--line);
+        border-radius: 12px;
+        background: var(--surface);
+      }
+
+      .progress-row {
+        display: flex;
+        justify-content: space-between;
+        margin-bottom: 8px;
+        color: var(--muted);
+        font-size: 12px;
+      }
+
+      .progress-track {
+        height: 6px;
+        overflow: hidden;
+        border-radius: 99px;
+        background: var(--surface-3);
+      }
+
+      .progress-bar {
+        width: 0;
+        height: 100%;
+        border-radius: inherit;
+        background: linear-gradient(90deg, var(--accent), var(--accent-2));
+        transition: width 180ms ease;
+      }
+
+      .toc-title {
+        margin: 0 0 8px 8px;
+        color: var(--muted);
+        font-size: 11px;
+        font-weight: 700;
+        letter-spacing: 0.12em;
+        text-transform: uppercase;
+      }
+
+      .toc {
+        display: grid;
+        gap: 3px;
+      }
+
+      .toc a {
+        display: flex;
+        gap: 10px;
+        align-items: center;
+        padding: 8px 10px;
+        border-radius: 9px;
+        color: var(--muted);
+        font-size: 12px;
+        text-decoration: none;
+        transition:
+          color 150ms ease,
+          background 150ms ease;
+      }
+
+      .toc a:hover,
+      .toc a.active {
+        background: var(--surface-2);
+        color: var(--text);
+      }
+
+      .toc-number {
+        width: 22px;
+        color: var(--accent);
+        font-variant-numeric: tabular-nums;
+      }
+
+      main {
+        width: min(1080px, calc(100% - var(--sidebar)));
+        margin-left: var(--sidebar);
+        padding: 56px clamp(28px, 6vw, 88px) 120px;
+      }
+
+      .hero {
+        position: relative;
+        overflow: hidden;
+        min-height: 440px;
+        padding: clamp(36px, 7vw, 76px);
+        border: 1px solid var(--line);
+        border-radius: 28px;
+        background: linear-gradient(145deg, rgba(23, 28, 38, 0.96), rgba(12, 15, 21, 0.95));
+      }
+
+      .hero::after {
+        position: absolute;
+        right: -120px;
+        bottom: -180px;
+        width: 420px;
+        height: 420px;
+        border: 1px solid rgba(121, 167, 255, 0.18);
+        border-radius: 50%;
+        content: "";
+        box-shadow:
+          0 0 0 50px rgba(121, 167, 255, 0.025),
+          0 0 0 100px rgba(110, 231, 199, 0.018);
+      }
+
+      .eyebrow {
+        display: inline-flex;
+        gap: 8px;
+        align-items: center;
+        margin-bottom: 22px;
+        padding: 6px 10px;
+        border: 1px solid rgba(110, 231, 199, 0.3);
+        border-radius: 99px;
+        color: var(--accent);
+        font-size: 11px;
+        font-weight: 750;
+        letter-spacing: 0.12em;
+        text-transform: uppercase;
+      }
+
+      h1 {
+        max-width: 780px;
+        margin: 0;
+        font-size: clamp(42px, 7vw, 78px);
+        font-weight: 760;
+        letter-spacing: -0.055em;
+        line-height: 0.98;
+      }
+
+      .hero-lead {
+        max-width: 700px;
+        margin: 28px 0 0;
+        color: #bec6d1;
+        font-size: clamp(16px, 2vw, 20px);
+      }
+
+      .hero-meta {
+        position: relative;
+        z-index: 1;
+        display: flex;
+        flex-wrap: wrap;
+        gap: 10px;
+        margin-top: 36px;
+      }
+
+      .pill {
+        padding: 7px 11px;
+        border: 1px solid var(--line);
+        border-radius: 999px;
+        background: rgba(9, 11, 16, 0.5);
+        color: var(--muted);
+        font-size: 12px;
+      }
+
+      section {
+        scroll-margin-top: 28px;
+        padding-top: 88px;
+      }
+
+      .section-kicker {
+        color: var(--accent);
+        font-size: 12px;
+        font-weight: 750;
+        letter-spacing: 0.12em;
+        text-transform: uppercase;
+      }
+
+      h2 {
+        margin: 7px 0 16px;
+        font-size: clamp(30px, 5vw, 48px);
+        letter-spacing: -0.04em;
+        line-height: 1.12;
+      }
+
+      h3 {
+        margin: 42px 0 12px;
+        font-size: 23px;
+        letter-spacing: -0.025em;
+      }
+
+      h4 {
+        margin: 26px 0 8px;
+        font-size: 17px;
+      }
+
+      p,
+      li {
+        color: #c4cbd5;
+      }
+
+      strong {
+        color: var(--text);
+      }
+
+      .lead {
+        max-width: 780px;
+        color: var(--muted);
+        font-size: 17px;
+      }
+
+      .grid {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 16px;
+        margin-top: 24px;
+      }
+
+      .grid.three {
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+      }
+
+      .card {
+        padding: 22px;
+        border: 1px solid var(--line);
+        border-radius: var(--radius);
+        background: rgba(17, 21, 29, 0.76);
+      }
+
+      .card h3,
+      .card h4 {
+        margin-top: 0;
+      }
+
+      .card p:last-child,
+      .card ul:last-child {
+        margin-bottom: 0;
+      }
+
+      .stat {
+        display: block;
+        margin-bottom: 6px;
+        color: var(--accent);
+        font-family: "SFMono-Regular", Consolas, monospace;
+        font-size: 27px;
+        font-weight: 760;
+      }
+
+      .callout {
+        margin: 24px 0;
+        padding: 18px 20px;
+        border-left: 3px solid var(--accent-2);
+        border-radius: 0 12px 12px 0;
+        background: rgba(121, 167, 255, 0.08);
+      }
+
+      .callout.warning {
+        border-color: var(--warning);
+        background: rgba(243, 201, 105, 0.08);
+      }
+
+      .callout.important {
+        border-color: var(--accent);
+        background: rgba(110, 231, 199, 0.08);
+      }
+
+      .callout strong {
+        display: block;
+        margin-bottom: 3px;
+      }
+
+      .callout p {
+        margin: 0;
+      }
+
+      .timeline {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 1px;
+        overflow: hidden;
+        margin: 30px 0;
+        border: 1px solid var(--line);
+        border-radius: var(--radius);
+        background: var(--line);
+      }
+
+      .timeline > div {
+        padding: 22px;
+        background: var(--surface);
+      }
+
+      .timeline time {
+        display: block;
+        margin-bottom: 5px;
+        color: var(--accent);
+        font-family: "SFMono-Regular", Consolas, monospace;
+        font-size: 12px;
+      }
+
+      .flow {
+        display: flex;
+        gap: 9px;
+        align-items: stretch;
+        margin: 28px 0;
+      }
+
+      .flow-node {
+        flex: 1;
+        padding: 18px 14px;
+        border: 1px solid var(--line);
+        border-radius: 12px;
+        background: var(--surface);
+        text-align: center;
+      }
+
+      .flow-node small {
+        display: block;
+        color: var(--muted);
+      }
+
+      .arrow {
+        display: grid;
+        place-items: center;
+        color: var(--accent);
+      }
+
+      .file-tree {
+        padding: 20px 22px;
+        border: 1px solid var(--line);
+        border-radius: 14px;
+        background: var(--code);
+        color: #b7c1ce;
+        font-family: "SFMono-Regular", Consolas, monospace;
+        font-size: 13px;
+        line-height: 1.85;
+        white-space: pre;
+      }
+
+      .code-shell {
+        position: relative;
+        margin: 14px 0 28px;
+        overflow: hidden;
+        border: 1px solid var(--line);
+        border-radius: 14px;
+        background: var(--code);
+      }
+
+      .code-head {
+        display: flex;
+        min-height: 42px;
+        justify-content: space-between;
+        align-items: center;
+        padding: 0 12px 0 16px;
+        border-bottom: 1px solid var(--line);
+        background: #0d1016;
+        color: var(--muted);
+        font-family: "SFMono-Regular", Consolas, monospace;
+        font-size: 11px;
+      }
+
+      .copy-button {
+        border: 1px solid var(--line);
+        border-radius: 7px;
+        background: var(--surface-2);
+        color: var(--text);
+        cursor: pointer;
+        padding: 5px 9px;
+        font: inherit;
+      }
+
+      .copy-button:hover {
+        border-color: var(--accent);
+        color: var(--accent);
+      }
+
+      pre {
+        margin: 0;
+        overflow-x: auto;
+        padding: 20px;
+        color: #d8dee8;
+        font-size: 12.5px;
+        line-height: 1.65;
+        tab-size: 2;
+      }
+
+      :not(pre) > code {
+        padding: 2px 6px;
+        border: 1px solid var(--line);
+        border-radius: 6px;
+        background: var(--surface-2);
+        color: #dce5f0;
+        font-size: 0.9em;
+      }
+
+      .checkpoint {
+        display: flex;
+        gap: 12px;
+        align-items: flex-start;
+        margin-top: 38px;
+        padding: 18px;
+        border: 1px solid rgba(110, 231, 199, 0.28);
+        border-radius: 14px;
+        background: rgba(110, 231, 199, 0.06);
+      }
+
+      .checkpoint input {
+        width: 20px;
+        height: 20px;
+        margin-top: 3px;
+        accent-color: var(--accent);
+      }
+
+      .checkpoint label {
+        cursor: pointer;
+      }
+
+      .checkpoint label strong {
+        display: block;
+      }
+
+      details {
+        margin: 12px 0;
+        border: 1px solid var(--line);
+        border-radius: 12px;
+        background: rgba(17, 21, 29, 0.68);
+      }
+
+      summary {
+        cursor: pointer;
+        padding: 16px 18px;
+        color: var(--text);
+        font-weight: 680;
+      }
+
+      details > div {
+        padding: 0 18px 18px;
+      }
+
+      .mapping {
+        display: grid;
+        gap: 10px;
+      }
+
+      .mapping-row {
+        display: grid;
+        grid-template-columns: minmax(160px, 0.8fr) minmax(220px, 1.2fr);
+        gap: 14px;
+        padding: 14px 0;
+        border-bottom: 1px solid var(--line);
+      }
+
+      .mapping-row:last-child {
+        border-bottom: 0;
+      }
+
+      .mapping-row p {
+        margin: 0;
+      }
+
+      .quiz {
+        margin-top: 30px;
+      }
+
+      .quiz details[open] summary {
+        color: var(--accent);
+      }
+
+      .source-list a {
+        color: var(--accent-2);
+        text-decoration-color: rgba(121, 167, 255, 0.4);
+        text-underline-offset: 3px;
+      }
+
+      .mobile-toggle {
+        display: none;
+      }
+
+      .muted {
+        color: var(--muted);
+      }
+
+      .danger {
+        color: var(--danger);
+      }
+
+      @media (max-width: 880px) {
+        .mobile-toggle {
+          position: fixed;
+          top: 14px;
+          left: 14px;
+          z-index: 40;
+          display: block;
+          border: 1px solid var(--line);
+          border-radius: 10px;
+          background: var(--surface);
+          color: var(--text);
+          padding: 9px 12px;
+        }
+
+        .sidebar {
+          width: min(86vw, 320px);
+          transform: translateX(-105%);
+          transition: transform 180ms ease;
+        }
+
+        body.nav-open .sidebar {
+          transform: translateX(0);
+        }
+
+        main {
+          width: 100%;
+          margin-left: 0;
+          padding: 72px 18px 90px;
+        }
+
+        .grid,
+        .grid.three,
+        .timeline {
+          grid-template-columns: 1fr;
+        }
+
+        .flow {
+          flex-direction: column;
+        }
+
+        .arrow {
+          transform: rotate(90deg);
+        }
+
+        .mapping-row {
+          grid-template-columns: 1fr;
+        }
+      }
+
+      @media print {
+        body {
+          background: white;
+          color: black;
+        }
+
+        .sidebar,
+        .mobile-toggle,
+        .copy-button {
+          display: none;
+        }
+
+        main {
+          width: 100%;
+          margin: 0;
+          padding: 0;
+        }
+
+        section {
+          break-inside: avoid;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <button class="mobile-toggle" type="button" aria-label="目次を開く">目次</button>
+    <div class="layout">
+      <aside class="sidebar" aria-label="教材の目次">
+        <div class="brand">
+          <div class="brand-mark">CP</div>
+          <div class="brand-copy">
+            <strong>ChatbotProvider</strong>
+            <span>build to understand</span>
+          </div>
+        </div>
+        <div class="progress-card">
+          <div class="progress-row">
+            <span>進捗</span>
+            <span id="progress-label">0 / 10</span>
+          </div>
+          <div class="progress-track">
+            <div class="progress-bar" id="progress-bar"></div>
+          </div>
+        </div>
+        <p class="toc-title">Contents</p>
+        <nav class="toc">
+          <a href="#overview"><span class="toc-number">00</span>ゴールと全体像</a>
+          <a href="#setup"><span class="toc-number">01</span>環境構築</a>
+          <a href="#react"><span class="toc-number">02</span>Reactの最小知識</a>
+          <a href="#boundary"><span class="toc-number">03</span>Next.jsの境界</a>
+          <a href="#mock"><span class="toc-number">04</span>モックチャット</a>
+          <a href="#use-chat"><span class="toc-number">05</span>useChatを読む</a>
+          <a href="#gateway"><span class="toc-number">06</span>実AIへ接続</a>
+          <a href="#database"><span class="toc-number">07</span>DB保存と復元</a>
+          <a href="#source-map"><span class="toc-number">08</span>実装へ戻る</a>
+          <a href="#finish"><span class="toc-number">09</span>理解度チェック</a>
+        </nav>
+      </aside>
+
+      <main>
+        <header class="hero">
+          <span class="eyebrow">3-hour hands-on · AI SDK v6</span>
+          <h1>Build to<br />Understand.</h1>
+          <p class="hero-lead">
+            1,400行の <code>ChatbotProvider</code> を、暗記ではなく「小さく作る」ことで理解する。
+            React Context、Next.js App Router、AI SDKのストリーム、SQLiteへの履歴保存を一本のデータフローとして組み立てます。
+          </p>
+          <div class="hero-meta">
+            <span class="pill">Next.js 16.3.3</span>
+            <span class="pill">React 19.2.6</span>
+            <span class="pill">AI SDK 6.0.3</span>
+            <span class="pill">Drizzle 0.43.1</span>
+            <span class="pill">SQLite</span>
+            <span class="pill">目安 2〜3時間</span>
+          </div>
+        </header>
+
+        <section id="overview" data-section>
+          <div class="section-kicker">00 · Orientation · 10 min</div>
+          <h2>最初に、何を作るのか</h2>
+          <p class="lead">
+            完成品は、1つの会話を扱う小さなAIチャットです。2時間地点でストリーミングと停止が動き、
+            3時間地点でブラウザを再読み込みしても会話が復元されます。
+          </p>
+
+          <div class="timeline">
+            <div>
+              <time>0:00 — 0:35</time>
+              <strong>境界を理解する</strong>
+              <p>Reactの状態とNext.jsのClient / Server境界を最小限だけ学びます。</p>
+            </div>
+            <div>
+              <time>0:35 — 2:00</time>
+              <strong>チャットを完成させる</strong>
+              <p>Context、useChat、Route Handler、モックと実AI接続を作ります。</p>
+            </div>
+            <div>
+              <time>2:00 — 3:00</time>
+              <strong>永続化する</strong>
+              <p>SQLite + Drizzleで、保存・取得・初期表示までつなぎます。</p>
+            </div>
+          </div>
+
+          <h3>完成時のデータフロー</h3>
+          <div class="flow" aria-label="完成アプリのデータフロー">
+            <div class="flow-node"><strong>Chat UI</strong><small>入力と表示</small></div>
+            <div class="arrow">→</div>
+            <div class="flow-node"><strong>ChatbotProvider</strong><small>状態と操作を集約</small></div>
+            <div class="arrow">→</div>
+            <div class="flow-node"><strong>useChat</strong><small>通信とストリーム状態</small></div>
+            <div class="arrow">→</div>
+            <div class="flow-node"><strong>/api/chat</strong><small>AIとDB</small></div>
+          </div>
+
+          <div class="grid three">
+            <article class="card">
+              <span class="stat">Client</span>
+              <strong>Reactが担当</strong>
+              <p>入力、表示、送信中状態、停止操作を扱います。</p>
+            </article>
+            <article class="card">
+              <span class="stat">Transport</span>
+              <strong>AI SDKが担当</strong>
+              <p>UIメッセージを送り、SSEを解釈して画面を更新します。</p>
+            </article>
+            <article class="card">
+              <span class="stat">Server</span>
+              <strong>Next.jsが担当</strong>
+              <p>秘密情報、モデル呼び出し、SQLiteをブラウザから隔離します。</p>
+            </article>
+          </div>
+
+          <div class="callout warning">
+            <strong>この教材で意図的に作らないもの</strong>
+            <p>
+              チャット一覧・チャット切替・下書き保持・再接続・ツール呼び出し・認証・クレジット・Canvas・iframe連携。
+              これらは本体の複雑さの大部分ですが、まず中心の一本道を理解してから戻る方が速いです。
+            </p>
+          </div>
+
+          <div class="checkpoint">
+            <input class="chapter-check" id="check-overview" type="checkbox" />
+            <label for="check-overview">
+              <strong>Checkpoint 00</strong>
+              完成品を「UI → Provider → useChat → Route Handler → AI / DB」という流れで説明できる。
+            </label>
+          </div>
+        </section>
+
+        <section id="setup" data-section>
+          <div class="section-kicker">01 · Setup · 15 min</div>
+          <h2>独立した学習用アプリを作る</h2>
+          <p class="lead">
+            既存モノレポの機能や設定から切り離します。Node.js 20.9以上とpnpmが必要です。
+            コマンドは任意の学習用ディレクトリで、自分で実行してください。
+          </p>
+
+          <h3>1. Next.jsアプリを作成</h3>
+          <div class="code-shell">
+            <div class="code-head"><span>terminal</span></div>
+            <pre><code>pnpm create next-app@16.3.3 mini-chatbot \
+  --ts \
+  --tailwind \
+  --eslint \
+  --app \
+  --src-dir \
+  --import-alias "@/*" \
+  --use-pnpm
+
+cd mini-chatbot</code></pre>
+          </div>
+
+          <h3>2. 本体と同じ主要バージョンへ固定</h3>
+          <p>
+            最新版を追う教材ではなく、対象の <code>ChatbotProvider</code> を読む教材です。
+            API差分を減らすため、2026年9月時点の対象リポジトリと揃えます。
+          </p>
+          <div class="code-shell">
+            <div class="code-head"><span>terminal</span></div>
+            <pre><code>pnpm add \
+  next@16.3.3 \
+  react@19.2.6 \
+  react-dom@19.2.6 \
+  ai@6.0.3 \
+  @ai-sdk/react@3.0.3
+
+pnpm add -D \
+  typescript@5.8.2 \
+  @types/react@19.2.7 \
+  @types/react-dom@19.2.3</code></pre>
+          </div>
+
+          <div class="callout">
+            <strong>なぜバージョン固定が必要？</strong>
+            <p>
+              AI SDKの <code>useChat</code> は世代ごとの差が大きいためです。v6では
+              API URLをhookへ直接渡す旧形式ではなく、<code>DefaultChatTransport</code>
+              を渡します。送信には <code>sendMessage({ text })</code> を使います。
+            </p>
+          </div>
+
+          <h3>3. 最終的なファイル構成</h3>
+          <div class="file-tree">mini-chatbot/
+├── drizzle.config.ts
+├── sqlite.db                 # migrate後に生成
+└── src/
+    ├── app/
+    │   ├── api/chat/route.ts
+    │   ├── globals.css
+    │   ├── layout.tsx
+    │   └── page.tsx
+    ├── components/
+    │   ├── chat.tsx
+    │   └── chatbot-provider.tsx
+    └── db/
+        ├── chat-store.ts
+        ├── index.ts
+        └── schema.ts</div>
+
+          <h3>4. 起動確認</h3>
+          <div class="code-shell">
+            <div class="code-head"><span>terminal</span></div>
+            <pre><code>pnpm dev</code></pre>
+          </div>
+          <p><code>http://localhost:3000</code> が開けば準備完了です。</p>
+
+          <div class="checkpoint">
+            <input class="chapter-check" id="check-setup" type="checkbox" />
+            <label for="check-setup">
+              <strong>Checkpoint 01</strong>
+              空のNext.jsアプリが起動し、package.json上でNext.js 16・React 19・AI SDK 6を確認した。
+            </label>
+          </div>
+        </section>
+
+        <section id="react" data-section>
+          <div class="section-kicker">02 · React essentials · 15 min</div>
+          <h2>Hooksを「役割」で捉える</h2>
+          <p class="lead">
+            APIを丸暗記する必要はありません。今回使う4つを「何のために存在するか」で区別します。
+          </p>
+
+          <div class="grid">
+            <article class="card">
+              <h3><code>useState</code></h3>
+              <p><strong>画面に反映したい値</strong>を持ちます。値を更新すると再レンダーされます。</p>
+              <pre><code>const [input, setInput] = useState("");
+setInput("こんにちは"); // 画面の入力欄も更新</code></pre>
+            </article>
+            <article class="card">
+              <h3><code>useRef</code></h3>
+              <p><strong>再レンダーせず保持したい箱</strong>です。非同期処理から最新値を読む用途にも使います。</p>
+              <pre><code>const chatIdRef = useRef(chatId);
+chatIdRef.current = nextChatId; // 画面更新は起こさない</code></pre>
+            </article>
+            <article class="card">
+              <h3><code>useEffect</code></h3>
+              <p><strong>レンダー外の世界と同期</strong>します。通信、購読、DOM、ref同期などです。</p>
+              <pre><code>useEffect(() =&gt; {
+  chatIdRef.current = chatId;
+}, [chatId]);</code></pre>
+            </article>
+            <article class="card">
+              <h3><code>Context</code></h3>
+              <p><strong>離れた子孫へ共通の値と操作を配る</strong>仕組みです。Providerが供給し、hookが取得します。</p>
+              <pre><code>&lt;ChatbotContext.Provider value={value}&gt;
+  {children}
+&lt;/ChatbotContext.Provider&gt;</code></pre>
+            </article>
+          </div>
+
+          <h3>Providerは「巨大なstate置き場」ではない</h3>
+          <p>
+            Providerの本質は、複数のUIが同じチャット状態と操作を共有するための<strong>公開API</strong>です。
+            入力欄は <code>sendMessage</code> を使い、メッセージ一覧は <code>messages</code> を読みます。
+            UI側は通信方法や保存方法を知る必要がありません。
+          </p>
+
+          <div class="callout important">
+            <strong>判断基準</strong>
+            <p>
+              値の変更を画面へ反映したいならstate。画面更新なしで処理中の最新値を参照したいならref。
+              外部との同期ならeffect。離れた子へ同じ機能を公開するならContextです。
+            </p>
+          </div>
+
+          <div class="quiz">
+            <h3>30秒チェック</h3>
+            <details>
+              <summary>送信中かどうかを保持するなら state と ref のどちら？</summary>
+              <div>
+                <p><strong>state。</strong>送信中表示やボタンのdisabled状態を更新したいからです。今回はAI SDKの <code>status</code> がこのstateを管理します。</p>
+              </div>
+            </details>
+            <details>
+              <summary>非同期コールバックから「現在開いているchatId」を読むためにrefを使うのはなぜ？</summary>
+              <div>
+                <p>コールバック作成時点の古い値（stale closure）ではなく、実行時点の最新値を読みたいからです。本体の <code>chatRef</code> も同じ目的を持ちます。</p>
+              </div>
+            </details>
+          </div>
+
+          <div class="checkpoint">
+            <input class="chapter-check" id="check-react" type="checkbox" />
+            <label for="check-react">
+              <strong>Checkpoint 02</strong>
+              state・ref・effect・Contextの役割を、それぞれ一文で区別できる。
+            </label>
+          </div>
+        </section>
+
+        <section id="boundary" data-section>
+          <div class="section-kicker">03 · Next.js boundary · 10 min</div>
+          <h2>ブラウザとサーバーを分ける</h2>
+          <p class="lead">
+            App Routerでは、コンポーネントは標準でServer Componentです。
+            Hooksやブラウザ操作が必要なファイルだけ、先頭に <code>"use client"</code> を付けます。
+          </p>
+
+          <div class="grid">
+            <article class="card">
+              <h3>Client Component</h3>
+              <ul>
+                <li><code>useState</code> や <code>useChat</code> を使う</li>
+                <li>クリックやフォーム入力を処理する</li>
+                <li>秘密鍵やDBへ直接アクセスしない</li>
+              </ul>
+            </article>
+            <article class="card">
+              <h3>Server Component / Route Handler</h3>
+              <ul>
+                <li>DBから初期データを読む</li>
+                <li>AI Gatewayの認証情報を扱う</li>
+                <li><code>app/api/**/route.ts</code> でHTTPを処理する</li>
+              </ul>
+            </article>
+          </div>
+
+          <h3>今回の境界</h3>
+          <div class="flow">
+            <div class="flow-node"><strong>page.tsx</strong><small>Server：DBから初期履歴</small></div>
+            <div class="arrow">→</div>
+            <div class="flow-node"><strong>ChatbotProvider</strong><small>Client：useChatとContext</small></div>
+            <div class="arrow">→</div>
+            <div class="flow-node"><strong>route.ts</strong><small>Server：AI呼び出しとDB保存</small></div>
+          </div>
+
+          <div class="callout warning">
+            <strong>セキュリティ境界でもある</strong>
+            <p>
+              <code>AI_GATEWAY_API_KEY</code> は <code>NEXT_PUBLIC_</code> を付けず、Route Handlerだけで利用します。
+              Client Componentへimportしたファイルに秘密情報やDB接続を置いてはいけません。
+            </p>
+          </div>
+
+          <div class="checkpoint">
+            <input class="chapter-check" id="check-boundary" type="checkbox" />
+            <label for="check-boundary">
+              <strong>Checkpoint 03</strong>
+              Chat UIをClient Component、AI・DB処理をサーバーへ置く理由を説明できる。
+            </label>
+          </div>
+        </section>
+
+        <section id="mock" data-section>
+          <div class="section-kicker">04 · First working chat · 55 min</div>
+          <h2>まずモックでストリームを通す</h2>
+          <p class="lead">
+            認証やモデルの問題を切り離し、UI Message Streamが端から端まで流れる状態を先に作ります。
+            以下の3ファイルは、その時点の完全な内容です。
+          </p>
+
+          <h3>1. Route Handlerを作る</h3>
+          <p><code>src/app/api/chat/route.ts</code> を作成します。</p>
+          <div class="code-shell">
+            <div class="code-head"><span>src/app/api/chat/route.ts</span></div>
+            <pre><code>import {
+  createUIMessageStream,
+  createUIMessageStreamResponse,
+  generateId,
+  type UIMessage,
+} from "ai";
+
+const sleep = (ms: number) =&gt;
+  new Promise&lt;void&gt;((resolve) =&gt; setTimeout(resolve, ms));
+
+export async function POST(request: Request) {
+  const { messages }: { messages: UIMessage[] } = await request.json();
+
+  const latestText = messages
+    .at(-1)
+    ?.parts.filter((part) =&gt; part.type === "text")
+    .map((part) =&gt; part.text)
+    .join("");
+
+  const answer =
+    `「${latestText ?? ""}」を受け取りました。` +
+    "これはAIを呼ばずに返しているストリーミングモックです。";
+
+  const stream = createUIMessageStream({
+    originalMessages: messages,
+    generateId,
+    execute: async ({ writer }) =&gt; {
+      const textPartId = generateId();
+      writer.write({ type: "text-start", id: textPartId });
+
+      for (const character of answer) {
+        if (request.signal.aborted) {
+          writer.write({ type: "abort" });
+          return;
+        }
+
+        writer.write({
+          type: "text-delta",
+          id: textPartId,
+          delta: character,
+        });
+        await sleep(24);
+      }
+
+      writer.write({ type: "text-end", id: textPartId });
+    },
+  });
+
+  return createUIMessageStreamResponse({ stream });
+}</code></pre>
+          </div>
+
+          <div class="callout">
+            <strong>ここで重要なのはSSEの形式</strong>
+            <p>
+              単なる文字列のHTTPストリームではありません。<code>useChat</code> が解釈できる
+              <code>text-start → text-delta → text-end</code> のUI Message Streamを返しています。
+            </p>
+          </div>
+
+          <h3>2. ChatbotProviderを作る</h3>
+          <p><code>src/components/chatbot-provider.tsx</code> を作成します。</p>
+          <div class="code-shell">
+            <div class="code-head"><span>src/components/chatbot-provider.tsx</span></div>
+            <pre><code>"use client";
+
+import { useChat } from "@ai-sdk/react";
+import {
+  DefaultChatTransport,
+  type ChatStatus,
+  type UIMessage,
+} from "ai";
+import {
+  createContext,
+  type Dispatch,
+  type ReactNode,
+  type SetStateAction,
+  useCallback,
+  useContext,
+  useMemo,
+  useState,
+} from "react";
+
+type ChatbotContextValue = {
+  messages: UIMessage[];
+  status: ChatStatus;
+  error: Error | undefined;
+  clearError: () =&gt; void;
+  input: string;
+  setInput: Dispatch&lt;SetStateAction&lt;string&gt;&gt;;
+  sendMessage: () =&gt; Promise&lt;void&gt;;
+  stop: () =&gt; Promise&lt;void&gt;;
+};
+
+const ChatbotContext = createContext&lt;ChatbotContextValue | null&gt;(null);
+
+export function ChatbotProvider({ children }: { children: ReactNode }) {
+  const [input, setInput] = useState("");
+
+  const transport = useMemo(
+    () =&gt; new DefaultChatTransport({ api: "/api/chat" }),
+    [],
+  );
+
+  const {
+    messages,
+    status,
+    error,
+    clearError,
+    sendMessage: sendChatMessage,
+    stop,
+  } = useChat({
+    id: "learning-chat",
+    transport,
+  });
+
+  const sendMessage = useCallback(async () =&gt; {
+    const text = input.trim();
+    if (!text || status !== "ready") return;
+
+    setInput("");
+    await sendChatMessage({ text });
+  }, [input, sendChatMessage, status]);
+
+  const value = useMemo&lt;ChatbotContextValue&gt;(
+    () =&gt; ({
+      messages,
+      status,
+      error,
+      clearError,
+      input,
+      setInput,
+      sendMessage,
+      stop,
+    }),
+    [messages, status, error, clearError, input, sendMessage, stop],
+  );
+
+  return (
+    &lt;ChatbotContext.Provider value={value}&gt;
+      {children}
+    &lt;/ChatbotContext.Provider&gt;
+  );
+}
+
+export function useChatbot() {
+  const context = useContext(ChatbotContext);
+
+  if (context === null) {
+    throw new Error("useChatbot must be used within ChatbotProvider");
+  }
+
+  return context;
+}</code></pre>
+          </div>
+
+          <h4>このProviderがしていること</h4>
+          <ol>
+            <li><code>useState</code> で入力文字列を管理する。</li>
+            <li><code>DefaultChatTransport</code> にAPIの場所を教える。</li>
+            <li><code>useChat</code> からメッセージ・状態・操作を受け取る。</li>
+            <li>アプリ固有の「空文字を送らない」「送ったら入力を消す」をラップする。</li>
+            <li>Context経由で子コンポーネントへ公開する。</li>
+          </ol>
+
+          <h3>3. Chat UIを作る</h3>
+          <p><code>src/components/chat.tsx</code> を作成します。</p>
+          <div class="code-shell">
+            <div class="code-head"><span>src/components/chat.tsx</span></div>
+            <pre><code>"use client";
+
+import type { FormEvent } from "react";
+import { useChatbot } from "./chatbot-provider";
+
+export function Chat() {
+  const {
+    messages,
+    status,
+    error,
+    clearError,
+    input,
+    setInput,
+    sendMessage,
+    stop,
+  } = useChatbot();
+
+  const isBusy = status === "submitted" || status === "streaming";
+
+  const handleSubmit = (event: FormEvent&lt;HTMLFormElement&gt;) =&gt; {
+    event.preventDefault();
+    void sendMessage();
+  };
+
+  return (
+    &lt;section className="flex h-[min(760px,85vh)] w-full max-w-3xl flex-col overflow-hidden rounded-3xl border border-white/10 bg-zinc-950"&gt;
+      &lt;header className="flex items-center justify-between border-b border-white/10 px-6 py-4"&gt;
+        &lt;div&gt;
+          &lt;p className="text-sm font-semibold text-white"&gt;Mini Chatbot&lt;/p&gt;
+          &lt;p className="text-xs text-zinc-500"&gt;status: {status}&lt;/p&gt;
+        &lt;/div&gt;
+        &lt;span className="rounded-full bg-emerald-400/10 px-3 py-1 text-xs text-emerald-300"&gt;
+          AI SDK v6
+        &lt;/span&gt;
+      &lt;/header&gt;
+
+      &lt;div className="flex-1 space-y-5 overflow-y-auto p-6"&gt;
+        {messages.length === 0 &amp;&amp; (
+          &lt;div className="grid h-full place-items-center text-center"&gt;
+            &lt;div&gt;
+              &lt;p className="text-lg font-medium text-zinc-200"&gt;
+                最初のメッセージを送ってみましょう
+              &lt;/p&gt;
+              &lt;p className="mt-2 text-sm text-zinc-500"&gt;
+                モック応答が1文字ずつストリーミングされます。
+              &lt;/p&gt;
+            &lt;/div&gt;
+          &lt;/div&gt;
+        )}
+
+        {messages.map((message) =&gt; (
+          &lt;article
+            key={message.id}
+            className={
+              message.role === "user"
+                ? "ml-auto max-w-[82%] rounded-2xl rounded-br-md bg-blue-500 px-4 py-3 text-white"
+                : "max-w-[82%] rounded-2xl rounded-bl-md bg-white/[0.07] px-4 py-3 text-zinc-200"
+            }
+          &gt;
+            &lt;p className="mb-1 text-[10px] font-bold uppercase tracking-widest opacity-55"&gt;
+              {message.role}
+            &lt;/p&gt;
+            {message.parts.map((part, index) =&gt;
+              part.type === "text" ? (
+                &lt;p key={`${message.id}-${index}`} className="whitespace-pre-wrap"&gt;
+                  {part.text}
+                &lt;/p&gt;
+              ) : null,
+            )}
+          &lt;/article&gt;
+        ))}
+      &lt;/div&gt;
+
+      {error &amp;&amp; (
+        &lt;div className="mx-6 mb-3 flex items-center justify-between gap-3 rounded-xl bg-red-400/10 px-4 py-3 text-sm text-red-300"&gt;
+          &lt;p&gt;{error.message}&lt;/p&gt;
+          &lt;button
+            type="button"
+            onClick={clearError}
+            className="shrink-0 rounded-lg border border-red-300/20 px-3 py-1"
+          &gt;
+            閉じる
+          &lt;/button&gt;
+        &lt;/div&gt;
+      )}
+
+      &lt;form onSubmit={handleSubmit} className="border-t border-white/10 p-4"&gt;
+        &lt;div className="flex gap-3"&gt;
+          &lt;input
+            value={input}
+            onChange={(event) =&gt; setInput(event.target.value)}
+            disabled={isBusy}
+            placeholder="メッセージを入力..."
+            className="min-w-0 flex-1 rounded-xl border border-white/10 bg-white/5 px-4 py-3 text-white outline-none placeholder:text-zinc-600 focus:border-blue-400"
+          /&gt;
+          {isBusy ? (
+            &lt;button
+              type="button"
+              onClick={() =&gt; void stop()}
+              className="rounded-xl bg-red-400/15 px-5 text-sm font-semibold text-red-300"
+            &gt;
+              停止
+            &lt;/button&gt;
+          ) : (
+            &lt;button
+              type="submit"
+              disabled={!input.trim()}
+              className="rounded-xl bg-blue-500 px-5 text-sm font-semibold text-white disabled:opacity-40"
+            &gt;
+              送信
+            &lt;/button&gt;
+          )}
+        &lt;/div&gt;
+      &lt;/form&gt;
+    &lt;/section&gt;
+  );
+}</code></pre>
+          </div>
+
+          <h3>4. ProviderでUIを包む</h3>
+          <p><code>src/app/page.tsx</code> を置き換えます。</p>
+          <div class="code-shell">
+            <div class="code-head"><span>src/app/page.tsx</span></div>
+            <pre><code>import { Chat } from "@/components/chat";
+import { ChatbotProvider } from "@/components/chatbot-provider";
+
+export default function Home() {
+  return (
+    &lt;main className="grid min-h-screen place-items-center bg-[#090b10] p-4"&gt;
+      &lt;ChatbotProvider&gt;
+        &lt;Chat /&gt;
+      &lt;/ChatbotProvider&gt;
+    &lt;/main&gt;
+  );
+}</code></pre>
+          </div>
+
+          <h3>5. 動かす</h3>
+          <div class="code-shell">
+            <div class="code-head"><span>terminal</span></div>
+            <pre><code>pnpm dev</code></pre>
+          </div>
+          <p>
+            メッセージを送ると、ユーザー発言が即座に追加され、その後にアシスタントの文字が少しずつ増えます。
+            応答中に「停止」を押すと、クライアント側のfetchが中断されます。
+          </p>
+
+          <details>
+            <summary>動かない場合の切り分け</summary>
+            <div>
+              <ol>
+                <li>ブラウザのNetworkで <code>POST /api/chat</code> が200か確認。</li>
+                <li>500なら、起動したterminalのスタックトレースを見る。</li>
+                <li>404なら、ファイルが <code>src/app/api/chat/route.ts</code> にあるか確認。</li>
+                <li>画面が更新されないなら、レスポンスのcontent-typeがUI message streamになっているか確認。</li>
+              </ol>
+            </div>
+          </details>
+
+          <div class="checkpoint">
+            <input class="chapter-check" id="check-mock" type="checkbox" />
+            <label for="check-mock">
+              <strong>Checkpoint 04 — ここで約1時間35分</strong>
+              モック応答がストリーミング表示され、停止ボタンが動く。
+            </label>
+          </div>
+        </section>
+
+        <section id="use-chat" data-section>
+          <div class="section-kicker">05 · Read useChat · 20 min</div>
+          <h2><code>useChat</code> を状態機械として読む</h2>
+          <p class="lead">
+            <code>useChat</code> は「AIを呼ぶhook」ではありません。チャットUIの状態を持ち、
+            transportへHTTP通信を委譲し、返ってきたイベントでメッセージを更新するhookです。
+          </p>
+
+          <h3>statusの遷移</h3>
+          <div class="flow">
+            <div class="flow-node"><strong>ready</strong><small>送信可能</small></div>
+            <div class="arrow">→</div>
+            <div class="flow-node"><strong>submitted</strong><small>応答開始待ち</small></div>
+            <div class="arrow">→</div>
+            <div class="flow-node"><strong>streaming</strong><small>chunk受信中</small></div>
+            <div class="arrow">→</div>
+            <div class="flow-node"><strong>ready / error</strong><small>完了または失敗</small></div>
+          </div>
+
+          <div class="mapping">
+            <div class="mapping-row">
+              <p><code>messages</code></p>
+              <p>画面表示用の <code>UIMessage[]</code>。本文は <code>content</code> ではなく <code>parts</code> にあります。</p>
+            </div>
+            <div class="mapping-row">
+              <p><code>sendMessage({ text })</code></p>
+              <p>ユーザーメッセージを追加し、transportにリクエストを開始させます。</p>
+            </div>
+            <div class="mapping-row">
+              <p><code>stop()</code></p>
+              <p>現在のクライアントリクエストをAbortします。分散環境のサーバー処理停止とは別問題です。</p>
+            </div>
+            <div class="mapping-row">
+              <p><code>DefaultChatTransport</code></p>
+              <p>送信先、headers、credentials、request body、再接続先など、HTTPの詳細を担当します。</p>
+            </div>
+          </div>
+
+          <h3>なぜメッセージは <code>parts</code> なのか</h3>
+          <p>
+            アシスタントの出力はテキストだけとは限りません。推論、ファイル、出典、ツール入力・結果、
+            独自data partなどを同じメッセージへ順序付きで格納するためです。
+            今回は <code>part.type === "text"</code> だけ表示します。
+          </p>
+
+          <h3>Providerが薄いラッパーを作る理由</h3>
+          <p>
+            UIへ生の <code>sendChatMessage</code> を渡さず、<code>sendMessage()</code> で包みました。
+            これにより、空文字チェック・入力クリア・アプリ固有コマンド・利用制限などをUIから分離できます。
+            本体も同じ発想で、圧縮コマンドや履歴更新を追加しています。
+          </p>
+
+          <div class="quiz">
+            <h3>理解確認</h3>
+            <details>
+              <summary>なぜinputはuseChatではなくuseStateで持つ？</summary>
+              <div><p>AI SDK v6の <code>useChat</code> はメッセージと通信状態を管理しますが、フォーム入力の状態はアプリ側の責務だからです。</p></div>
+            </details>
+            <details>
+              <summary>なぜProvider内でtransportをuseMemoしている？</summary>
+              <div><p>レンダーごとに新しいtransportインスタンスを作らず、同じ通信設定を安定して使うためです。本体では変化するbodyやheadersをref経由で読むことで、transportの再生成を避けています。</p></div>
+            </details>
+          </div>
+
+          <div class="checkpoint">
+            <input class="chapter-check" id="check-use-chat" type="checkbox" />
+            <label for="check-use-chat">
+              <strong>Checkpoint 05</strong>
+              useChatのstatus遷移と、useChat・transport・Route Handlerの責務を区別できる。
+            </label>
+          </div>
+        </section>
+
+        <section id="gateway" data-section>
+          <div class="section-kicker">06 · Real model · 25 min</div>
+          <h2>モックを実AIへ差し替える</h2>
+          <p class="lead">
+            UIとProviderは変更しません。サーバーの生成部分だけを差し替えます。
+            この交換可能性が、境界を分けた効果です。
+          </p>
+
+          <h3>1. 環境変数を作る</h3>
+          <p>
+            まず、独自設定用の <code>.env.development.local</code> を作ります。
+            このファイルはGitへコミットしないでください。
+          </p>
+          <div class="code-shell">
+            <div class="code-head"><span>.env.development.local</span></div>
+            <pre><code>USE_MOCK_AI=true
+AI_MODEL=openai/gpt-5.4-mini</code></pre>
+          </div>
+
+          <div class="callout warning">
+            <strong>最初は必ず USE_MOCK_AI=true</strong>
+            <p>
+              Route Handlerの差し替え後もモックが動くことを確認してからfalseにします。
+              無料枠では <code>openai/gpt-5.4</code> などの旗艦モデルは使えません。
+              学習では <code>openai/gpt-5.4-mini</code> を使います。
+              他の無料モデルは
+              <a href="https://vercel.com/ai-gateway/models?freeTier=true" target="_blank" rel="noreferrer">Free Tier models</a>
+              で確認してください。
+            </p>
+          </div>
+
+          <h4>推奨：OIDCでGatewayへ認証する</h4>
+          <p>
+            Vercel CLIで学習用プロジェクトをlinkし、短命なOIDCトークンを
+            <code>.env.local</code> へ取得します。トークン値を表示・共有しないでください。
+          </p>
+          <div class="code-shell">
+            <div class="code-head"><span>terminal</span></div>
+            <pre><code>npm i -g vercel
+vercel login
+vercel link
+vercel env pull .env.local</code></pre>
+          </div>
+          <p>
+            OIDCトークンが期限切れになったら <code>vercel env pull .env.local --yes</code>
+            を再実行します。独自設定を別ファイルにしたのは、pullによる上書きから守るためです。
+          </p>
+
+          <h4>代替：静的なGatewayキーを使う</h4>
+          <p>
+            Vercelプロジェクトをlinkしない場合は、<code>.env.local</code> に
+            <code>AI_GATEWAY_API_KEY</code> を設定できます。これは手動ローテーションが必要です。
+            キー名に <code>NEXT_PUBLIC_</code> を付けず、値をログやチャットへ貼らないでください。
+          </p>
+
+          <h3>2. Route Handlerを置き換える</h3>
+          <div class="code-shell">
+            <div class="code-head"><span>src/app/api/chat/route.ts</span></div>
+            <pre><code>import {
+  convertToModelMessages,
+  createUIMessageStream,
+  createUIMessageStreamResponse,
+  generateId,
+  streamText,
+  type UIMessage,
+} from "ai";
+
+export const maxDuration = 30;
+
+const sleep = (ms: number) =&gt;
+  new Promise&lt;void&gt;((resolve) =&gt; setTimeout(resolve, ms));
+
+function createMockResponse(messages: UIMessage[], signal: AbortSignal) {
+  const answer =
+    "モックモードです。USE_MOCK_AI=false にすると実際のモデルへ接続します。";
+
+  const stream = createUIMessageStream({
+    originalMessages: messages,
+    generateId,
+    execute: async ({ writer }) =&gt; {
+      const textPartId = generateId();
+      writer.write({ type: "text-start", id: textPartId });
+
+      for (const character of answer) {
+        if (signal.aborted) {
+          writer.write({ type: "abort" });
+          return;
+        }
+
+        writer.write({
+          type: "text-delta",
+          id: textPartId,
+          delta: character,
+        });
+        await sleep(24);
+      }
+
+      writer.write({ type: "text-end", id: textPartId });
+    },
+  });
+
+  return createUIMessageStreamResponse({ stream });
+}
+
+export async function POST(request: Request) {
+  const { messages }: { messages: UIMessage[] } = await request.json();
+
+  if (process.env.USE_MOCK_AI === "true") {
+    return createMockResponse(messages, request.signal);
+  }
+
+  const model = process.env.AI_MODEL;
+  if (!model) {
+    return new Response("AI_MODEL is not configured", { status: 500 });
+  }
+
+  const result = streamText({
+    model,
+    system:
+      "あなたは簡潔で親切な学習アシスタントです。回答は日本語で返してください。",
+    messages: await convertToModelMessages(messages),
+    abortSignal: request.signal,
+  });
+
+  return result.toUIMessageStreamResponse({
+    originalMessages: messages,
+    generateMessageId: generateId,
+  });
+}</code></pre>
+          </div>
+
+          <h3>3. 二段階で確認する</h3>
+          <ol>
+            <li><code>USE_MOCK_AI=true</code> のまま再起動し、モックが動く。</li>
+            <li><code>USE_MOCK_AI=false</code> に変えて再起動し、実AIが応答する。</li>
+          </ol>
+          <div class="code-shell">
+            <div class="code-head"><span>terminal</span></div>
+            <pre><code>pnpm dev</code></pre>
+          </div>
+
+          <details>
+            <summary>Gateway接続で失敗したとき</summary>
+            <div>
+              <ul>
+                <li><strong>401 / 認証エラー：</strong>キーまたはOIDCトークンを確認。値そのものはログへ出さない。</li>
+                <li><strong>Free tier users do not have access to this model：</strong>無料枠で使えないモデルです。<code>AI_MODEL=openai/gpt-5.4-mini</code> に変えて dev server を再起動します。旗艦モデルが必要なら Vercel で有料クレジットを購入します。</li>
+                <li><strong>モデルが見つからない：</strong><a href="https://vercel.com/ai-gateway/models?freeTier=true" target="_blank" rel="noreferrer">Free Tier models</a> で現在利用可能なIDへ <code>AI_MODEL</code> を変更。</li>
+                <li><strong>学習を続けたい：</strong><code>USE_MOCK_AI=true</code> に戻す。UI・DBの章には影響しません。</li>
+              </ul>
+            </div>
+          </details>
+
+          <div class="callout">
+            <strong>停止ボタンの限界</strong>
+            <p>
+              この簡易版はブラウザ接続のabortを <code>request.signal</code> へ伝播させます。
+              本体は接続から独立した再開可能ストリームを使うため、別のstop APIとRedis通知で生成を止めます。
+              「接続を切る」と「サーバー上の処理を止める」が同義でない構成は発展領域です。
+            </p>
+          </div>
+
+          <div class="checkpoint">
+            <input class="chapter-check" id="check-gateway" type="checkbox" />
+            <label for="check-gateway">
+              <strong>Checkpoint 06 — ここで約2時間</strong>
+              同じUIのままモックと実AIを切り替えられ、応答を途中で停止できる。
+            </label>
+          </div>
+        </section>
+
+        <section id="database" data-section>
+          <div class="section-kicker">07 · Persistence · 55–75 min</div>
+          <h2>SQLiteへ保存し、再読み込みで復元する</h2>
+          <p class="lead">
+            UI表示に使う <code>UIMessage</code> を、partsを保ったまま保存します。
+            <code>chats</code> と <code>messages</code> を分け、単一チャットでもデータモデルの境界を作ります。
+          </p>
+
+          <div class="callout warning">
+            <strong>このSQLite構成はローカル学習専用</strong>
+            <p>
+              ローカルファイルへ保存するため、通常のVercel Functionsへそのままデプロイして永続化することはできません。
+              デプロイ時はNeonなどのマネージドDBへ置き換えます。ここではDB設計と保存フローの理解を優先します。
+            </p>
+          </div>
+
+          <h3>1. DrizzleとSQLiteを追加</h3>
+          <div class="code-shell">
+            <div class="code-head"><span>terminal</span></div>
+            <pre><code>pnpm add drizzle-orm@0.43.1 better-sqlite3@12.2.0
+pnpm add -D drizzle-kit@0.31.1 @types/better-sqlite3@7.6.13</code></pre>
+          </div>
+
+          <h3>2. スキーマを書く</h3>
+          <p><code>src/db/schema.ts</code> を作成します。</p>
+          <div class="code-shell">
+            <div class="code-head"><span>src/db/schema.ts</span></div>
+            <pre><code>import type { UIMessage } from "ai";
+import { index, integer, sqliteTable, text } from "drizzle-orm/sqlite-core";
+
+export const chats = sqliteTable("chats", {
+  id: text("id").primaryKey(),
+  createdAt: integer("created_at", { mode: "timestamp_ms" }).notNull(),
+  updatedAt: integer("updated_at", { mode: "timestamp_ms" }).notNull(),
+});
+
+export const messages = sqliteTable(
+  "messages",
+  {
+    id: text("id").primaryKey(),
+    chatId: text("chat_id")
+      .notNull()
+      .references(() =&gt; chats.id, { onDelete: "cascade" }),
+    sequence: integer("sequence").notNull(),
+    role: text("role").$type&lt;UIMessage["role"]&gt;().notNull(),
+    parts: text("parts", { mode: "json" })
+      .$type&lt;UIMessage["parts"]&gt;()
+      .notNull(),
+  },
+  (table) =&gt; [
+    index("messages_chat_sequence_idx").on(table.chatId, table.sequence),
+  ],
+);</code></pre>
+          </div>
+
+          <h4>なぜcontentではなくpartsを保存する？</h4>
+          <p>
+            AI SDK v6のUIメッセージは、テキスト以外のツール結果やファイルもpartsとして持てるからです。
+            本体の <code>CustomUIMessage</code> も、この拡張可能な形を使っています。
+          </p>
+
+          <h3>3. Drizzle Kitを設定</h3>
+          <p>プロジェクト直下に <code>drizzle.config.ts</code> を作成します。</p>
+          <div class="code-shell">
+            <div class="code-head"><span>drizzle.config.ts</span></div>
+            <pre><code>import { defineConfig } from "drizzle-kit";
+
+export default defineConfig({
+  dialect: "sqlite",
+  schema: "./src/db/schema.ts",
+  out: "./drizzle",
+  dbCredentials: {
+    url: "./sqlite.db",
+  },
+});</code></pre>
+          </div>
+
+          <h3>4. マイグレーションを生成・適用</h3>
+          <div class="code-shell">
+            <div class="code-head"><span>terminal</span></div>
+            <pre><code>pnpm exec drizzle-kit generate --name=init
+pnpm exec drizzle-kit migrate</code></pre>
+          </div>
+          <p>
+            <code>drizzle/</code> にSQLとスナップショット、プロジェクト直下に
+            <code>sqlite.db</code> が生成されます。
+          </p>
+
+          <div class="callout warning">
+            <strong>Gitへ追加するもの</strong>
+            <p>
+              migrationファイルは追加しますが、ローカルデータを含む <code>sqlite.db</code> は
+              <code>.gitignore</code> に追加してください。
+            </p>
+          </div>
+          <div class="code-shell">
+            <div class="code-head"><span>.gitignore に追記</span></div>
+            <pre><code>sqlite.db
+sqlite.db-shm
+sqlite.db-wal</code></pre>
+          </div>
+
+          <h3>5. DB接続を作る</h3>
+          <p><code>src/db/index.ts</code> を作成します。</p>
+          <div class="code-shell">
+            <div class="code-head"><span>src/db/index.ts</span></div>
+            <pre><code>import Database from "better-sqlite3";
+import { drizzle } from "drizzle-orm/better-sqlite3";
+
+const sqlite = new Database("sqlite.db");
+sqlite.pragma("foreign_keys = ON");
+
+export const db = drizzle(sqlite);</code></pre>
+          </div>
+
+          <p>
+            <code>better-sqlite3</code> はNode.js用です。したがって、このDBモジュールをClient Componentからimportしてはいけません。
+            Route HandlerとServer Componentだけで使います。
+          </p>
+
+          <h3>6. 保存・取得関数を作る</h3>
+          <p><code>src/db/chat-store.ts</code> を作成します。</p>
+          <div class="code-shell">
+            <div class="code-head"><span>src/db/chat-store.ts</span></div>
+            <pre><code>import { asc, eq } from "drizzle-orm";
+import type { UIMessage } from "ai";
+import { db } from "./index";
+import { chats, messages } from "./schema";
+
+export const LEARNING_CHAT_ID = "learning-chat";
+
+export function loadMessages(chatId: string): UIMessage[] {
+  return db
+    .select({
+      id: messages.id,
+      role: messages.role,
+      parts: messages.parts,
+    })
+    .from(messages)
+    .where(eq(messages.chatId, chatId))
+    .orderBy(asc(messages.sequence))
+    .all();
+}
+
+export function saveMessages(chatId: string, nextMessages: UIMessage[]) {
+  const now = new Date();
+
+  db.transaction((tx) =&gt; {
+    tx.insert(chats)
+      .values({
+        id: chatId,
+        createdAt: now,
+        updatedAt: now,
+      })
+      .onConflictDoUpdate({
+        target: chats.id,
+        set: { updatedAt: now },
+      })
+      .run();
+
+    tx.delete(messages).where(eq(messages.chatId, chatId)).run();
+
+    if (nextMessages.length === 0) return;
+
+    tx.insert(messages)
+      .values(
+        nextMessages.map((message, sequence) =&gt; ({
+          id: message.id,
+          chatId,
+          sequence,
+          role: message.role,
+          parts: message.parts,
+        })),
+      )
+      .run();
+  });
+}</code></pre>
+          </div>
+
+          <div class="callout">
+            <strong>簡易版として割り切った点</strong>
+            <p>
+              毎回そのチャットのmessagesを削除して全件挿入しています。理解しやすさを優先した方式です。
+              本番では差分保存、同時更新制御、soft delete、失敗時の整合性、ユーザー権限が必要です。
+            </p>
+          </div>
+
+          <h3>7. Providerへ初期メッセージと最終発言送信を追加</h3>
+          <p><code>src/components/chatbot-provider.tsx</code> を以下の完成形へ置き換えます。</p>
+          <div class="code-shell">
+            <div class="code-head"><span>src/components/chatbot-provider.tsx</span></div>
+            <pre><code>"use client";
+
+import { useChat } from "@ai-sdk/react";
+import {
+  DefaultChatTransport,
+  type ChatStatus,
+  type UIMessage,
+} from "ai";
+import {
+  createContext,
+  type Dispatch,
+  type ReactNode,
+  type SetStateAction,
+  useCallback,
+  useContext,
+  useMemo,
+  useState,
+} from "react";
+
+type ChatbotContextValue = {
+  messages: UIMessage[];
+  status: ChatStatus;
+  error: Error | undefined;
+  clearError: () =&gt; void;
+  input: string;
+  setInput: Dispatch&lt;SetStateAction&lt;string&gt;&gt;;
+  sendMessage: () =&gt; Promise&lt;void&gt;;
+  stop: () =&gt; Promise&lt;void&gt;;
+};
+
+const ChatbotContext = createContext&lt;ChatbotContextValue | null&gt;(null);
+
+type ChatbotProviderProps = {
+  children: ReactNode;
+  chatId: string;
+  initialMessages: UIMessage[];
+};
+
+export function ChatbotProvider({
+  children,
+  chatId,
+  initialMessages,
+}: ChatbotProviderProps) {
+  const [input, setInput] = useState("");
+
+  const transport = useMemo(
+    () =&gt;
+      new DefaultChatTransport({
+        api: "/api/chat",
+        prepareSendMessagesRequest: ({ id, messages }) =&gt; ({
+          body: {
+            chatId: id,
+            message: messages.at(-1),
+          },
+        }),
+      }),
+    [],
+  );
+
+  const {
+    messages,
+    status,
+    error,
+    clearError,
+    sendMessage: sendChatMessage,
+    stop,
+  } = useChat({
+    id: chatId,
+    messages: initialMessages,
+    transport,
+  });
+
+  const sendMessage = useCallback(async () =&gt; {
+    const text = input.trim();
+    if (!text || status !== "ready") return;
+
+    setInput("");
+    await sendChatMessage({ text });
+  }, [input, sendChatMessage, status]);
+
+  const value = useMemo&lt;ChatbotContextValue&gt;(
+    () =&gt; ({
+      messages,
+      status,
+      error,
+      clearError,
+      input,
+      setInput,
+      sendMessage,
+      stop,
+    }),
+    [messages, status, error, clearError, input, sendMessage, stop],
+  );
+
+  return (
+    &lt;ChatbotContext.Provider value={value}&gt;
+      {children}
+    &lt;/ChatbotContext.Provider&gt;
+  );
+}
+
+export function useChatbot() {
+  const context = useContext(ChatbotContext);
+
+  if (context === null) {
+    throw new Error("useChatbot must be used within ChatbotProvider");
+  }
+
+  return context;
+}</code></pre>
+          </div>
+
+          <p>
+            送信するのは最後のメッセージだけになりました。サーバーがDBから過去履歴を読み、
+            最後のユーザーメッセージを追加します。本体の <code>selectRequestFrontier</code> と同じ方向性です。
+          </p>
+
+          <h3>8. APIをDB対応の完成形へ置き換える</h3>
+          <div class="code-shell">
+            <div class="code-head"><span>src/app/api/chat/route.ts</span></div>
+            <pre><code>import {
+  convertToModelMessages,
+  createUIMessageStream,
+  createUIMessageStreamResponse,
+  generateId,
+  streamText,
+  type UIMessage,
+  validateUIMessages,
+} from "ai";
+import { loadMessages, saveMessages } from "@/db/chat-store";
+
+export const maxDuration = 30;
+
+type ChatRequest = {
+  chatId: string;
+  message: UIMessage;
+};
+
+const sleep = (ms: number) =&gt;
+  new Promise&lt;void&gt;((resolve) =&gt; setTimeout(resolve, ms));
+
+function createMockResponse(
+  chatId: string,
+  messages: UIMessage[],
+  signal: AbortSignal,
+) {
+  const answer =
+    "DB対応モックです。この応答が完了するとSQLiteへ保存されます。";
+
+  const stream = createUIMessageStream({
+    originalMessages: messages,
+    generateId,
+    execute: async ({ writer }) =&gt; {
+      const textPartId = generateId();
+      writer.write({ type: "text-start", id: textPartId });
+
+      for (const character of answer) {
+        if (signal.aborted) {
+          writer.write({ type: "abort" });
+          return;
+        }
+
+        writer.write({
+          type: "text-delta",
+          id: textPartId,
+          delta: character,
+        });
+        await sleep(24);
+      }
+
+      writer.write({ type: "text-end", id: textPartId });
+    },
+    onFinish: ({ messages: completedMessages, isAborted }) =&gt; {
+      if (!isAborted) saveMessages(chatId, completedMessages);
+    },
+  });
+
+  return createUIMessageStreamResponse({ stream });
+}
+
+export async function POST(request: Request) {
+  const body = (await request.json()) as Partial&lt;ChatRequest&gt;;
+  const { chatId, message } = body;
+
+  if (!chatId || !message) {
+    return new Response("chatId and message are required", { status: 400 });
+  }
+
+  const previousMessages = loadMessages(chatId);
+  const messages = await validateUIMessages({
+    messages: [...previousMessages, message],
+  });
+
+  // AIが失敗・中断してもユーザー発言は残す。
+  saveMessages(chatId, messages);
+
+  if (process.env.USE_MOCK_AI === "true") {
+    return createMockResponse(chatId, messages, request.signal);
+  }
+
+  const model = process.env.AI_MODEL;
+  if (!model) {
+    return new Response("AI_MODEL is not configured", { status: 500 });
+  }
+
+  const result = streamText({
+    model,
+    system:
+      "あなたは簡潔で親切な学習アシスタントです。回答は日本語で返してください。",
+    messages: await convertToModelMessages(messages),
+    abortSignal: request.signal,
+  });
+
+  return result.toUIMessageStreamResponse({
+    originalMessages: messages,
+    generateMessageId: generateId,
+    onFinish: ({ messages: completedMessages, isAborted }) =&gt; {
+      if (!isAborted) saveMessages(chatId, completedMessages);
+    },
+  });
+}</code></pre>
+          </div>
+
+          <div class="callout important">
+            <strong>保存タイミングを2回に分けた理由</strong>
+            <p>
+              生成開始前にユーザーメッセージまで保存し、完了後にアシスタントメッセージを含む全体を保存します。
+              生成エラー時に「送った質問まで消える」ことを避けます。本体はさらにoperation IDやfinalizerで整合性を守ります。
+            </p>
+          </div>
+
+          <h3>9. Server Componentで初期履歴を渡す</h3>
+          <p><code>src/app/page.tsx</code> を完成形へ置き換えます。</p>
+          <div class="code-shell">
+            <div class="code-head"><span>src/app/page.tsx</span></div>
+            <pre><code>import { Chat } from "@/components/chat";
+import { ChatbotProvider } from "@/components/chatbot-provider";
+import { LEARNING_CHAT_ID, loadMessages } from "@/db/chat-store";
+import { connection } from "next/server";
+
+export default async function Home() {
+  await connection();
+  const initialMessages = loadMessages(LEARNING_CHAT_ID);
+
+  return (
+    &lt;main className="grid min-h-screen place-items-center bg-[#090b10] p-4"&gt;
+      &lt;ChatbotProvider
+        chatId={LEARNING_CHAT_ID}
+        initialMessages={initialMessages}
+      &gt;
+        &lt;Chat /&gt;
+      &lt;/ChatbotProvider&gt;
+    &lt;/main&gt;
+  );
+}</code></pre>
+          </div>
+          <p>
+            <code>connection()</code> は、このページがリクエスト時の動的データを読むことをNext.jsへ明示します。
+            これがないとproduction buildでページが事前生成され、build時点の履歴が固定される可能性があります。
+          </p>
+
+          <h3>10. 最終確認</h3>
+          <div class="code-shell">
+            <div class="code-head"><span>terminal</span></div>
+            <pre><code># 開発モードで会話と再読み込みを確認
+pnpm dev
+
+# 確認後、Ctrl+Cでdev serverを停止
+pnpm exec tsc --noEmit
+pnpm lint
+
+# production buildでも毎回DBを読むことを確認
+pnpm build
+pnpm start
+
+# 再読み込みを確認後、Ctrl+Cで停止</code></pre>
+          </div>
+          <ol>
+            <li>2往復以上会話する。</li>
+            <li>ブラウザを再読み込みする。</li>
+            <li>過去のユーザー・アシスタントメッセージが同じ順番で表示される。</li>
+            <li>新しい質問で、AIが過去の文脈を参照できる。</li>
+          </ol>
+
+          <details>
+            <summary>DB章で詰まりやすい点</summary>
+            <div>
+              <ul>
+                <li><strong>no such table：</strong><code>drizzle-kit migrate</code> を実行したか確認。</li>
+                <li><strong>better-sqlite3のbuild失敗：</strong>Node.jsの対応版とビルドツールを確認。Node 22 LTSが無難。</li>
+                <li><strong>履歴が二重になる：</strong>transportが全履歴ではなく最後のmessageだけ送っているか確認。</li>
+                <li><strong>保存されない：</strong>応答を停止せず最後まで完了させ、terminalのエラーを確認。</li>
+              </ul>
+            </div>
+          </details>
+
+          <div class="checkpoint">
+            <input class="chapter-check" id="check-database" type="checkbox" />
+            <label for="check-database">
+              <strong>Checkpoint 07 — ここで約3時間</strong>
+              migrationが適用され、再読み込み後にSQLiteから会話が復元される。
+            </label>
+          </div>
+        </section>
+
+        <section id="source-map" data-section>
+          <div class="section-kicker">08 · Return to production · 20 min</div>
+          <h2>本物のChatbotProviderへ戻る</h2>
+          <p class="lead">
+            ここまで作った一本道に、本番要件を一層ずつ重ねたものとして読んでください。
+            行番号は教材作成時点です。変更された場合は識別名で検索してください。
+          </p>
+
+          <div class="mapping">
+            <div class="mapping-row">
+              <p><strong>Client境界</strong><br /><code>"use client"</code></p>
+              <p><code>chatbot-provider.tsx:1</code>。Hooks・Context・iframe通信を扱うためClient Componentです。</p>
+            </div>
+            <div class="mapping-row">
+              <p><strong>公開API</strong><br /><code>ChatbotContextType</code></p>
+              <p><code>98–166</code>。簡易版の7項目に対し、本体は60項目以上を公開します。まず「誰が使うか」でグループ化します。</p>
+            </div>
+            <div class="mapping-row">
+              <p><strong>Context</strong><br /><code>ChatbotContext</code> / <code>useChatbot</code></p>
+              <p><code>168</code> と <code>1396–1404</code>。null初期値とProvider外利用のguardは簡易版と同じです。</p>
+            </div>
+            <div class="mapping-row">
+              <p><strong>AI SDK中核</strong><br /><code>useChat</code></p>
+              <p><code>567–716</code>。transport、callbacks、tool call、stream再接続が集約されています。</p>
+            </div>
+            <div class="mapping-row">
+              <p><strong>最新値を読むref</strong><br /><code>headersRef</code> / <code>bodyRef</code> / <code>chatRef</code></p>
+              <p><code>296–304</code>、<code>364–399</code>、<code>545–546</code>。長寿命コールバックのstale closureを避けます。</p>
+            </div>
+            <div class="mapping-row">
+              <p><strong>送信のラップ</strong><br /><code>sendMessage</code> / <code>regenerate</code></p>
+              <p><code>817–867</code>。圧縮コマンド、pending解除、URL同期、キャッシュ無効化、編集フラグを追加します。</p>
+            </div>
+            <div class="mapping-row">
+              <p><strong>履歴の復元</strong><br /><code>openChat</code></p>
+              <p><code>1037–1142</code>。簡易版の初期propsだけでなく、agent/model復元とactive stream再接続も行います。</p>
+            </div>
+            <div class="mapping-row">
+              <p><strong>競合制御</strong><br /><code>runExclusive</code> / <code>isLatestSwitch</code></p>
+              <p><code>use-composer-session.ts:145–166</code>。連打されたチャット切替を直列化し、遅れて返った古い結果を捨てます。</p>
+            </div>
+            <div class="mapping-row">
+              <p><strong>サーバーストリーム</strong><br /><code>createUIMessageStream</code></p>
+              <p><code>app/api/chat/route.ts:422–789</code>。agent実行、compaction、usage、DB finalizer、resumable streamを合成します。</p>
+            </div>
+            <div class="mapping-row">
+              <p><strong>Context値</strong><br /><code>contextValue</code></p>
+              <p><code>1257–1393</code>。すべてをContextへ詰める最後の配線です。先に各機能を読んでから最後に確認します。</p>
+            </div>
+          </div>
+
+          <h3>1400行を読む順番</h3>
+          <ol>
+            <li><strong>型：</strong><code>ChatbotContextType</code> を機能別に色分けする。</li>
+            <li><strong>中核：</strong><code>useChat</code> とtransportだけを読む。</li>
+            <li><strong>送信：</strong><code>sendMessage</code> と <code>regenerate</code> を読む。</li>
+            <li><strong>切替：</strong><code>resetChat</code>、<code>setAgentId</code>、<code>openChat</code> を並べて読む。</li>
+            <li><strong>競合対策：</strong><code>*Ref</code>、generation、queue、chatId比較を探す。</li>
+            <li><strong>付加機能：</strong>compaction、client tools、canvas、embed、creditsを一つずつ追加する。</li>
+            <li><strong>最後：</strong><code>contextValue</code> で公開漏れがないか確認する。</li>
+          </ol>
+
+          <div class="callout important">
+            <strong>本体を理解するための中心モデル</strong>
+            <p>
+              本体は、<strong>UI上のchatId</strong>、<strong>チャット別の下書き</strong>、
+              <strong>サーバー上のactive stream</strong> という3つのidentityを同期しています。
+              queue・generation counter・chatRefのID比較は、この3つがずれる競合を防ぐためにあります。
+            </p>
+          </div>
+
+          <h3>この先の発展順</h3>
+          <div class="grid">
+            <article class="card">
+              <h4>1. 複数チャット</h4>
+              <p>chatIdをURLへ出し、一覧と <code>setMessages</code> による切替を追加する。</p>
+            </article>
+            <article class="card">
+              <h4>2. 下書き保持</h4>
+              <p>chatIdごとのinputとattachmentsをMapへsnapshotする。</p>
+            </article>
+            <article class="card">
+              <h4>3. 競合対策</h4>
+              <p>Promise queueとgeneration counterで、連続切替の順序を守る。</p>
+            </article>
+            <article class="card">
+              <h4>4. 再接続・停止</h4>
+              <p>activeStreamId、再接続GET、サーバー側Abortを追加する。</p>
+            </article>
+            <article class="card">
+              <h4>5. Tool calling</h4>
+              <p>message parts、<code>onToolCall</code>、<code>addToolOutput</code> を学ぶ。</p>
+            </article>
+            <article class="card">
+              <h4>6. Compaction</h4>
+              <p>長い履歴を要約し、元の文脈と置き換える別ストリームを扱う。</p>
+            </article>
+          </div>
+
+          <div class="checkpoint">
+            <input class="chapter-check" id="check-source" type="checkbox" />
+            <label for="check-source">
+              <strong>Checkpoint 08</strong>
+              本体の各ブロックを、簡易版の一本道に追加された本番要件として分類できる。
+            </label>
+          </div>
+        </section>
+
+        <section id="finish" data-section>
+          <div class="section-kicker">09 · Finish</div>
+          <h2>コードを閉じて説明してみる</h2>
+          <p class="lead">
+            次の5問へ、コードを見ずに答えてください。答えられない箇所だけ該当章へ戻れば十分です。
+          </p>
+
+          <div class="quiz">
+            <details>
+              <summary>Q1. ChatbotProviderは何を集約し、UIから何を隠している？</summary>
+              <div>
+                <p>
+                  チャット状態、入力、送信・停止操作を集約し、transport、APIの場所、送信前後のアプリ固有処理をUIから隠しています。
+                  本体ではさらに認証、agent/model、履歴切替、compaction、tools、canvas、embedを集約します。
+                </p>
+              </div>
+            </details>
+            <details>
+              <summary>Q2. useStateとuseRefをどう使い分ける？</summary>
+              <div>
+                <p>変更を画面へ反映する値はstate。レンダーを起こさず保持する値や、非同期コールバックから最新値を読む箱はrefです。</p>
+              </div>
+            </details>
+            <details>
+              <summary>Q3. Client ComponentとRoute Handlerの境界はどこ？</summary>
+              <div>
+                <p>Hooksとユーザー操作はClient Component。秘密情報、モデル呼び出し、DBアクセスはサーバーのRoute HandlerまたはServer Componentです。</p>
+              </div>
+            </details>
+            <details>
+              <summary>Q4. 送信してから文字が表示されるまで、何が起きる？</summary>
+              <div>
+                <p>
+                  sendMessageがUIMessageを追加し、transportがPOSTし、Route HandlerがModelMessageへ変換して生成を開始します。
+                  UI Message StreamのchunkをuseChatが読み、messagesを更新するためReactが再レンダーします。
+                </p>
+              </div>
+            </details>
+            <details>
+              <summary>Q5. DBから復元した履歴は、どこでuseChatへ入る？</summary>
+              <div>
+                <p>Server Componentのpage.tsxがDBから読み、ProviderのinitialMessages propを経由して <code>useChat({ messages })</code> へ渡します。</p>
+              </div>
+            </details>
+          </div>
+
+          <h3>次に本体で試す読解課題</h3>
+          <ol>
+            <li><code>bodyRef</code> を更新するeffectと、transportから読む箇所を線で結ぶ。</li>
+            <li><code>sendMessage</code> wrapperが生の <code>chat.sendMessage</code> に足している処理を列挙する。</li>
+            <li><code>openChat</code> 内のすべての <code>isLatestSwitch</code> を外した場合のバグを想像する。</li>
+            <li><code>contextValue</code> の項目を「AI SDK」「composer」「embed」「canvas」「business rule」に分類する。</li>
+          </ol>
+
+          <h3>参照した公式資料</h3>
+          <ul class="source-list">
+            <li><a href="https://nextjs.org/docs/app/getting-started/installation">Next.js — Installation</a></li>
+            <li><a href="https://nextjs.org/docs/app/getting-started/route-handlers">Next.js — Route Handlers</a></li>
+            <li><a href="https://ai-sdk.dev/docs/ai-sdk-ui/chatbot">AI SDK UI — Chatbot</a></li>
+            <li><a href="https://ai-sdk.dev/docs/ai-sdk-ui/chatbot-message-persistence">AI SDK UI — Message Persistence</a></li>
+            <li><a href="https://orm.drizzle.team/docs/get-started-sqlite">Drizzle — SQLite</a></li>
+            <li><a href="https://orm.drizzle.team/docs/drizzle-kit-generate">Drizzle Kit — generate</a></li>
+            <li><a href="https://orm.drizzle.team/docs/drizzle-kit-migrate">Drizzle Kit — migrate</a></li>
+          </ul>
+
+          <div class="callout warning">
+            <strong>教材のバージョン境界</strong>
+            <p>
+              コード例は対象リポジトリに合わせてAI SDK 6.0.3へ固定しています。
+              公式サイトが後続バージョンへ更新された場合、最新例とシグネチャが異なる可能性があります。
+              アップグレード時はインストールした <code>ai/dist/index.d.ts</code> と公式移行ガイドを確認してください。
+            </p>
+          </div>
+
+          <div class="checkpoint">
+            <input class="chapter-check" id="check-finish" type="checkbox" />
+            <label for="check-finish">
+              <strong>Final Checkpoint</strong>
+              5問へ自分の言葉で答え、簡易版から本体へ責務を対応付けられた。
+            </label>
+          </div>
+        </section>
+      </main>
+    </div>
+
+    <script>
+      (() => {
+        const storageKey = "chatbot-provider-hands-on-progress-v1";
+        const checks = [...document.querySelectorAll(".chapter-check")];
+        const progressBar = document.querySelector("#progress-bar");
+        const progressLabel = document.querySelector("#progress-label");
+        const saved = JSON.parse(localStorage.getItem(storageKey) || "{}");
+
+        checks.forEach((checkbox) => {
+          checkbox.checked = Boolean(saved[checkbox.id]);
+          checkbox.addEventListener("change", () => {
+            saved[checkbox.id] = checkbox.checked;
+            localStorage.setItem(storageKey, JSON.stringify(saved));
+            updateProgress();
+          });
+        });
+
+        function updateProgress() {
+          const completed = checks.filter((checkbox) => checkbox.checked).length;
+          const percentage = checks.length ? (completed / checks.length) * 100 : 0;
+          progressBar.style.width = `${percentage}%`;
+          progressLabel.textContent = `${completed} / ${checks.length}`;
+        }
+
+        document.querySelectorAll(".code-shell").forEach((shell) => {
+          const head = shell.querySelector(".code-head");
+          const code = shell.querySelector("code");
+          if (!head || !code) return;
+
+          const button = document.createElement("button");
+          button.type = "button";
+          button.className = "copy-button";
+          button.textContent = "Copy";
+          button.addEventListener("click", async () => {
+            await navigator.clipboard.writeText(code.textContent);
+            button.textContent = "Copied";
+            window.setTimeout(() => {
+              button.textContent = "Copy";
+            }, 1200);
+          });
+          head.append(button);
+        });
+
+        const tocLinks = [...document.querySelectorAll(".toc a")];
+        const sections = [...document.querySelectorAll("[data-section]")];
+        const observer = new IntersectionObserver(
+          (entries) => {
+            const visible = entries
+              .filter((entry) => entry.isIntersecting)
+              .sort((a, b) => b.intersectionRatio - a.intersectionRatio)[0];
+            if (!visible) return;
+
+            tocLinks.forEach((link) => {
+              link.classList.toggle(
+                "active",
+                link.getAttribute("href") === `#${visible.target.id}`,
+              );
+            });
+          },
+          { rootMargin: "-15% 0px -72% 0px", threshold: [0, 0.1, 0.5] },
+        );
+
+        sections.forEach((section) => observer.observe(section));
+
+        const toggle = document.querySelector(".mobile-toggle");
+        toggle.addEventListener("click", () => {
+          document.body.classList.toggle("nav-open");
+        });
+        tocLinks.forEach((link) => {
+          link.addEventListener("click", () => {
+            document.body.classList.remove("nav-open");
+          });
+        });
+
+        updateProgress();
+      })();
+    </script>
+  </body>
+</html>
